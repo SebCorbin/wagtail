@@ -33,6 +33,7 @@ from wagtail.snippets.views.snippets import SnippetViewSet
 from wagtail.snippets.widgets import AdminSnippetChooser
 from wagtail.test.testapp.models import (
     Advert,
+    AdvertTag,
     DraftStateModel,
     FullFeaturedSnippet,
     ModeratedModel,
@@ -56,6 +57,21 @@ class TestIncorrectRegistration(SimpleTestCase):
         self.assertIn("ModelViewSet", message)
         self.assertIn(
             "must define a `model` attribute or pass a `model` argument",
+            message,
+        )
+
+
+class TestIncorrectConverter(SimpleTestCase):
+    def test_unknown_converter(self):
+        class BadViewSet(SnippetViewSet):
+            model = AdvertTag
+            url_converter = "foo"
+
+        with self.assertRaises(ImproperlyConfigured) as cm:
+            register_snippet(BadViewSet)
+        message = str(cm.exception)
+        self.assertEqual(
+            "BadViewSet is using an unknown URL converter",
             message,
         )
 
