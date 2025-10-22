@@ -34,6 +34,7 @@ from wagtail.snippets.widgets import AdminSnippetChooser
 from wagtail.test.testapp.models import (
     Advert,
     AdvertTag,
+    AdvertWithCustomUUIDPrimaryKey,
     DraftStateModel,
     FullFeaturedSnippet,
     ModeratedModel,
@@ -74,6 +75,21 @@ class TestIncorrectConverter(SimpleTestCase):
             "BadViewSet is using an unknown URL converter",
             message,
         )
+
+
+class TestSnippetConverter(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.viewset = AdvertWithCustomUUIDPrimaryKey.snippet_viewset
+
+    def test_cannot_reverse(self):
+        edit_url = f"{self.viewset.url_namespace}:edit"
+        with self.assertRaises(NoReverseMatch):
+            reverse(edit_url, kwargs={"pk": 123})
+
+    def test_404_on_pk_not_uuids(self):
+        response = self.client.get(f"{self.viewset.url_prefix}/edit/123/")
+        self.assertEqual(response.status_code, 404)
 
 
 class BaseSnippetViewSetTests(WagtailTestUtils, TestCase):
